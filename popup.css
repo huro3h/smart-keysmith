@@ -1,0 +1,173 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1f2330;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #1a73e8;
+  --danger: #d93025;
+  --field: #f8f9fa;
+  --done: #1e8e3e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1b1e27;
+    --fg: #e8eaf0;
+    --muted: #9aa0ad;
+    --border: #333846;
+    --accent: #5b9cf8;
+    --danger: #f28b82;
+    --field: #232733;
+    --done: #81c995;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  padding: 14px 16px 12px;
+  font-family: -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI",
+    sans-serif;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* 名前は控えめに。主役はパスワードの一覧 */
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.version {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.tools {
+  display: flex;
+  gap: 2px;
+}
+
+button {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.list li {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 33 文字以上は popup.js が省略して出す。表示を選択してコピーすると省略された文字列に
+   なってしまうので、全選択 (user-select: all) にはしない。コピーはボタンから */
+.pw {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--field);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.pw.err {
+  font-family: inherit;
+  color: var(--danger);
+}
+
+/* アイコンだけのボタン。普段は枠なしで控えめに、乗せたときだけ枠を出す */
+.icon-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  color: var(--muted);
+}
+
+.icon-btn:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--fg);
+}
+
+.icon-btn svg {
+  display: block;
+}
+
+.copy {
+  color: var(--accent);
+}
+
+.copy:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.copy.done,
+.copy.done:hover {
+  color: var(--done);
+}
+
+.copy.failed,
+.copy.failed:hover {
+  color: var(--danger);
+}
