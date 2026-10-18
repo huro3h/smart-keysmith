@@ -118,6 +118,14 @@ Web 版の書き出し(`id` なしの配列)をそのまま読めるのは移行
   "Permission can't be granted to opaque origins" で失敗する。ポップアップのタブは `bringToFront()` してから
   コピーボタンを押す(フォーカスがないと `writeText` が失敗する)。
 
+## README のスクリーンショット
+
+`docs/popup.png`(380px 幅の body)と `docs/options.png`(720px 幅のフルページ)。どちらも
+**新しいプロファイルの初期プリセットのまま**、`deviceScaleFactor: 2` で撮る(公開リポジトリなので、
+テストで作ったプリセット名などを写さない)。拡張ページを普通のタブで開けば撮れるので、E2E と同じ
+読み込み方で `popup.html` は `locator('body').screenshot()`、`options.html` は `fullPage: true`。
+見た目を変えたら撮り直す。
+
 ## アイコン
 
 `icons/icon.svg`(鍵の線画)から `rsvg-convert` で 16/32/48/128 を書き出す。
