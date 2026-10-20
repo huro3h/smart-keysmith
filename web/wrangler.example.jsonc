@@ -1,0 +1,21 @@
+// このファイルをコピーして wrangler.jsonc を作る。
+//
+//   cp wrangler.example.jsonc wrangler.jsonc
+//
+// <ACCOUNT_ID> … huro3h.com のゾーンがある Cloudflare アカウントの ID (npx wrangler whoami で出る)
+//
+// wrangler.jsonc 側は git 管理外。アカウント固有の ID を公開しないため。
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "smart-keysmith",
+  "compatibility_date": "2026-10-01",
+  "account_id": "<ACCOUNT_ID>",
+  // dist/ (node build.mjs の出力) を静的アセットとして配信するだけ。Worker のコードはない
+  // /edit.html は /edit で開ける (html_handling の既定 auto-trailing-slash)
+  "assets": {
+    "directory": "./dist"
+  },
+  // DNS レコードと証明書は Cloudflare が作る (huro3h.com のゾーンが同じアカウントにある)
+  "routes": [{ "pattern": "smart-keysmith.huro3h.com", "custom_domain": true }],
+  "workers_dev": false
+}

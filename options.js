@@ -1,5 +1,6 @@
 import { COMMON_SYM, DEFAULT_PRESETS, findPreset, normalizePreset, generate, poolSize, presetLabel } from "./generator.js";
 import { loadSettings } from "./settings.js";
+import { writePresets } from "./platform.js";
 
 const $ = (id) => document.getElementById(id);
 const CHECKS = ["upper", "lower", "digit", "sym", "each", "ambig", "alphaStart"];
@@ -17,7 +18,7 @@ let editingId = "";
 const editing = () => findPreset(presets, editingId);
 
 async function save() {
-  await chrome.storage.local.set({ presets });
+  await writePresets(presets);
 }
 
 // onUndo を渡すと、メッセージの右に「元に戻す」を出す。押したら onUndo を呼び、

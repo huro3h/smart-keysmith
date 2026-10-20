@@ -3,6 +3,8 @@
 ツールバーのアイコンをクリックすると、**プリセットごとにランダムなパスワードを生成して一覧で表示**し、
 横の **コピー** ボタン(重なった四角のアイコン)でクリップボードにコピーできる Chrome 拡張 (MV3)。
 
+拡張を入れずに使える **Web 版** もあります: <https://smart-keysmith.huro3h.com/>
+
 <img src="docs/popup.png" width="380" alt="ポップアップ。プリセットごとに名前・生成したパスワード・コピーボタンが並び、右上に再生成と設定のボタンがある">
 
 ## なぜ作ったか
@@ -51,6 +53,24 @@ Smart Keysmith では、よく使うルールをプリセットとして登録�
 2. 右上の「デベロッパーモード」をオン
 3. 「パッケージ化されていない拡張機能を読み込む」でこのディレクトリを選ぶ
 4. ツールバーのパズルアイコンから Smart Keysmith をピン留めする
+
+## Web 版
+
+パスワード一覧の下に、歯車でプリセットの編集欄を開く 1 ページ構成です。ロジック (`generator.js` /
+`popup.js` / `options.js`) は拡張と同じものを使い、`platform.js`(保存先・バージョン・編集欄の開き方)だけを
+`web/platform.js`(`localStorage`)に差し替えます。HTML と CSS は Web 版のもの (`web/index.html` / `web/web.css`) で、
+`web/build.mjs` が `web/dist/` に組み立てます。Cloudflare Workers の静的アセットとして `smart-keysmith.huro3h.com` で配信しています。
+
+- パスワードはブラウザの中だけで作ります。CSP の `connect-src 'none'` で通信そのものを禁じています(`web/_headers`)
+- プリセットはブラウザの `localStorage` に保存します。拡張版とは JSON の書き出し / 読み込みで移せます
+
+```sh
+cd web
+npm install
+cp wrangler.example.jsonc wrangler.jsonc   # <ACCOUNT_ID> を埋める
+npm run dev      # http://localhost:8787
+npm run deploy
+```
 
 ## テスト
 

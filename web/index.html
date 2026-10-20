@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Keysmith</title>
+    <meta name="description" content="サイトごとのパスワードルールをプリセットにして、条件どおりのランダムなパスワードを一覧で作ってコピーできます。" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="web.css" />
+  </head>
+  <body>
+    <!-- 上にポップアップと同じパスワード一覧、歯車で下にオプション画面と同じ編集欄を開く。
+         id は拡張の popup.html / options.html と同じにする (popup.js / options.js をそのまま使うため。build.mjs で検査する) -->
+    <main>
+      <div class="head">
+        <h1 class="title">Smart Keysmith <span class="version" id="version"></span></h1>
+        <div class="tools">
+          <button class="icon-btn" id="regen" title="すべて再生成" aria-label="すべて再生成"></button>
+          <button class="icon-btn" id="openOptions" title="プリセットを編集" aria-label="プリセットを編集" aria-pressed="false" aria-controls="settings"></button>
+        </div>
+      </div>
+
+      <ul class="list" id="list" aria-live="polite"></ul>
+
+      <div id="settings" hidden>
+        <section>
+          <div class="section-head">
+            <h2>プリセット</h2>
+            <button class="small" id="closeSettings" aria-controls="settings">閉じる</button>
+          </div>
+          <p class="hint">名前をクリックすると下で編集できます。左端の ⠿ をドラッグすると並べ替えられ、上の一覧にもこの順で並びます。右端のボタンで複製・削除できます(削除は直後の通知から元に戻せます)。変更は自動で保存されます。</p>
+          <ul class="presets" id="presets"></ul>
+        </section>
+
+        <section>
+          <h2>編集中: <span id="editingName"></span></h2>
+          <div class="panel">
+            <div class="field">
+              <label for="name">プリセット名</label>
+              <input type="text" id="name" autocomplete="off" />
+              <span class="hint">空欄にすると自動の名前になり、文字種と文字数に合わせて名前が変わります</span>
+            </div>
+            <div class="field">
+              <label for="lenNum">文字数</label>
+              <div class="lenrow">
+                <input type="range" id="lenRange" min="4" max="128" aria-label="文字数スライダー" />
+                <input type="number" id="lenNum" min="4" max="128" />
+              </div>
+            </div>
+            <div class="field">
+              <span class="field-label">文字種</span>
+              <label class="check"><input type="checkbox" id="upper" /> 大文字 A–Z</label>
+              <label class="check"><input type="checkbox" id="lower" /> 小文字 a–z</label>
+              <label class="check"><input type="checkbox" id="digit" /> 数字 0–9</label>
+              <label class="check"><input type="checkbox" id="sym" /> 記号</label>
+            </div>
+            <div class="field">
+              <div class="label-row">
+                <label for="symbols">使う記号</label>
+                <button id="symResetBtn" class="small">初期値に戻す</button>
+              </div>
+              <input type="text" id="symbols" spellcheck="false" autocomplete="off" />
+              <span class="hint">サイトが許可する記号だけを残してください</span>
+              <span class="warn" id="symWarn"></span>
+            </div>
+            <div class="field wide">
+              <span class="field-label">ルール</span>
+              <label class="check"><input type="checkbox" id="each" /> 選んだ文字種を最低1文字ずつ含める</label>
+              <label class="check"><input type="checkbox" id="ambig" /> 紛らわしい文字を除く (0O 1lI)</label>
+              <label class="check"><input type="checkbox" id="alphaStart" /> 先頭は英字にする</label>
+            </div>
+          </div>
+          <div class="preview">
+            <div class="pw" id="pw"></div>
+            <div class="meta">
+              <span id="meta"></span>
+              <button id="regenBtn" class="small">再生成</button>
+            </div>
+            <p class="err" id="err"></p>
+          </div>
+        </section>
+
+        <section>
+          <h2>バックアップ</h2>
+          <p class="hint">プリセットはこのブラウザにだけ保存されます。JSON で書き出し / 読み込みでき、Chrome 拡張の Smart Keysmith とも同じ形式です。読み込むと今のプリセットはすべて置き換わります。</p>
+          <textarea id="io" rows="6" spellcheck="false" placeholder="ここに書き出し / 読み込み用の JSON が入ります"></textarea>
+          <div class="btn-row">
+            <button id="exportBtn">書き出し</button>
+            <button id="importBtn">読み込み</button>
+            <button id="resetBtn" class="danger">初期プリセットに戻す</button>
+          </div>
+        </section>
+      </div>
+
+      <details class="about">
+        <summary>仕組み</summary>
+        <ul>
+          <li>生成はこのブラウザの中だけで行います。乱数は <code>crypto.getRandomValues</code> を棄却法で偏りなく使っています(<code>generator.js</code> の <code>rand()</code> / <code>generate()</code>)</li>
+          <li>生成したパスワードは保存も送信もしません。Local Storage に残すのはプリセットの設定だけです</li>
+          <li>ページの設定 (Content-Security-Policy の <code>connect-src 'none'</code>) で通信そのものを禁じています。開発者ツールの Network で通信が起きていないことを確かめられます</li>
+          <li>Chrome 拡張版とソースコード: <a href="https://github.com/huro3h/smart-keysmith" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </details>
+
+      <div class="confirm" id="confirmBox" hidden>
+        <span id="confirmText"></span>
+        <div class="btn-row">
+          <button id="confirmYes" class="danger"></button>
+          <button id="confirmNo">やめる</button>
+        </div>
+      </div>
+      <p class="status" id="status" role="status"></p>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

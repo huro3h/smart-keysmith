@@ -1,9 +1,9 @@
 import { DEFAULT_PRESETS, normalizePreset } from "./generator.js";
+import { readPresets } from "./platform.js";
 
-// chrome.storage.local
-//   presets: プリセットの配列 (未保存なら DEFAULT_PRESETS)。ポップアップにこの順で並ぶ
+// 未保存なら DEFAULT_PRESETS
 export async function loadSettings() {
-  const { presets } = await chrome.storage.local.get("presets");
+  const presets = await readPresets();
   const list =
     Array.isArray(presets) && presets.length
       ? presets.map(normalizePreset)

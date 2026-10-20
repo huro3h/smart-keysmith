@@ -1,0 +1,577 @@
+/* Web 版の見た目。一覧 (ポップアップ) と編集欄 (オプション画面) を 1 ページに並べる 1 カラム。
+   拡張の popup.css / options.css は幅やクラス (.pw など) がぶつかるので読まず、ここにまとめて持つ。
+   共用の popup.js / options.js が付けるクラスを変えたら、ここも合わせる */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #202124;
+  --muted: #5f6368;
+  --border: #dadce0;
+  --field: #f8f9fa;
+  --accent: #1a73e8;
+  --accent-soft: #e8f0fe;
+  --danger: #d93025;
+  --warn: #b06000;
+  --done: #1e8e3e;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #202124;
+    --fg: #e8eaed;
+    --muted: #9aa0a6;
+    --border: #3c4043;
+    --field: #2a2b2e;
+    --accent: #8ab4f8;
+    --accent-soft: #263248;
+    --danger: #f28b82;
+    --warn: #fdd663;
+    --done: #81c995;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  padding-inline: 16px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.6 -apple-system, system-ui, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+}
+
+main {
+  max-width: 680px;
+  margin: 0 auto;
+  padding-block: 24px 96px;
+}
+
+/* ヘッダー (ポップアップと同じ: 名前は控えめ、右にアイコンだけのボタン) */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.title .version {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.tools {
+  display: flex;
+  gap: 2px;
+}
+
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+button.small {
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.icon-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  color: var(--muted);
+}
+
+.icon-btn:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--fg);
+}
+
+.icon-btn[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.icon-btn svg {
+  display: block;
+}
+
+/* パスワード一覧 (ポップアップ) */
+.list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.list li {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.list .label {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.list .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 33 文字以上は省略して出すので、全選択 (user-select: all) にはしない。コピーはボタンから */
+.list .pw {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--field);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.list .pw.err {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.copy,
+.copy:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.copy.done,
+.copy.done:hover {
+  color: var(--done);
+}
+
+.copy.failed,
+.copy.failed:hover {
+  color: var(--danger);
+}
+
+/* 編集欄 (オプション画面) */
+.hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+section {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.field-label,
+.field > label,
+.label-row > label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+#name {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+input:disabled {
+  opacity: 0.5;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.presets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.presets li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.presets li:first-child {
+  border-top: 0;
+}
+
+.presets li.editing {
+  background: var(--accent-soft);
+}
+
+.presets li.dragging {
+  opacity: 0.5;
+  background: var(--field);
+}
+
+.presets .name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presets li.editing .name {
+  font-weight: 600;
+}
+
+.drag-handle {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  user-select: none;
+  cursor: grab;
+}
+
+.drag-handle:hover {
+  background: var(--field);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.row-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  color: var(--muted);
+}
+
+.row-btn.danger {
+  color: var(--muted);
+}
+
+.row-btn:hover:not(:disabled) {
+  border-color: var(--border);
+  color: var(--fg);
+}
+
+.row-btn.danger:hover:not(:disabled) {
+  color: var(--danger);
+}
+
+.row-btn svg {
+  display: block;
+}
+
+.panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+.panel .wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+  .panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.check input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.lenrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lenrow input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
+}
+
+.lenrow input[type="number"] {
+  width: 76px;
+}
+
+.preview {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--field);
+}
+
+.preview .pw {
+  font-family: var(--mono);
+  font-size: 16px;
+  word-break: break-all;
+  min-height: 1.6em;
+}
+
+.preview .pw .d {
+  color: var(--accent);
+}
+
+.preview .pw .s {
+  color: var(--warn);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.err {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.err:empty {
+  display: none;
+}
+
+.warn {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--warn);
+}
+
+.warn:empty {
+  display: none;
+}
+
+/* 仕組み (さり気なく、ページの最後に小さく) */
+.about {
+  margin-top: 40px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.about summary {
+  cursor: pointer;
+  width: fit-content;
+  opacity: 0.7;
+}
+
+.about summary:hover {
+  opacity: 1;
+}
+
+.about ul {
+  margin: 8px 0 0;
+  padding-left: 1.2em;
+  line-height: 1.7;
+  max-width: 65ch;
+}
+
+.about code {
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.about a {
+  color: inherit;
+}
+
+.about a:hover {
+  color: var(--accent);
+}
+
+/* 確認と通知 */
+.confirm {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(480px, calc(100% - 32px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+  font-size: 13px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--fg);
+  color: var(--bg);
+  max-width: calc(100% - 32px);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.status.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.status span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status .undo {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

@@ -1,5 +1,6 @@
 import { generate, presetLabel } from "./generator.js";
 import { loadSettings } from "./settings.js";
+import { VERSION, onPresetsChanged, openEditor } from "./platform.js";
 
 const $ = (id) => document.getElementById(id);
 // これより長いパスワードは表示だけ省略する (コピーは全文)
@@ -74,10 +75,14 @@ function render(presets) {
   );
 }
 
-const { presets } = await loadSettings();
+let { presets } = await loadSettings();
 render(presets);
-$("version").textContent = `v${chrome.runtime.getManifest().version}`;
+onPresetsChanged(async () => {
+  ({ presets } = await loadSettings());
+  render(presets);
+});
+$("version").textContent = `v${VERSION}`;
 $("regen").innerHTML = REGEN_ICON;
 $("openOptions").innerHTML = GEAR_ICON;
 $("regen").onclick = () => render(presets);
-$("openOptions").onclick = () => chrome.runtime.openOptionsPage();
+$("openOptions").onclick = openEditor;

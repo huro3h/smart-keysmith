@@ -5,6 +5,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Web 版 (<https://smart-keysmith.huro3h.com/>)。パスワード一覧の下に、歯車でプリセットの編集欄を開く
+  1 ページ構成。ロジックは拡張と共用し、プリセットはブラウザの `localStorage` に保存する。CSP で通信を禁じている
+
 ## [1.0.2] - 2026-10-20
 
 ### Added

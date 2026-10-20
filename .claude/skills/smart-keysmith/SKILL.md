@@ -30,9 +30,11 @@ Web 版の書き出し(`id` なしの配列)をそのまま読めるのは移行
 | ファイル | 役割 |
 | --- | --- |
 | `generator.js` | 生成ロジック・`DEFAULT_PRESETS`・`normalizePreset`・`presetLabel`。chrome API に触れない(Node でテストできる) |
-| `settings.js` | `loadSettings()`。storage から読んで正規化する。ポップアップとオプション画面で共用 |
+| `settings.js` | `loadSettings()`。`platform.js` から読んで正規化する。ポップアップとオプション画面で共用 |
 | `popup.html` / `popup.js` / `popup.css` | 全プリセットのパスワード一覧とコピーボタン |
 | `options.html` / `options.js` / `options.css` | プリセットの編集画面(`options_ui`, タブで開く) |
+| `platform.js` | 拡張に依存する処理 (chrome.storage / manifest の version / オプション画面を開く)。Web 版は `web/platform.js` に差し替わる |
+| `web/` | Web 版。下の「Web 版」 |
 | `test/generator.test.mjs` | `node --test test/` |
 
 権限は `storage` だけ。background はない。
@@ -108,6 +110,27 @@ Web 版の書き出し(`id` なしの配列)をそのまま読めるのは移行
 - `each`(各文字種を最低1文字)は、位置をシャッフルして文字種ごとに別の位置へ1文字ずつ
   上書きする。`alphaStart` で先頭を英字に上書きした結果、文字種が欠けることがあるので
   最後に検査して引き直す。
+
+## Web 版 (web/)
+
+`smart-keysmith.huro3h.com`。Cloudflare Workers の静的アセットだけ (Worker のコードなし)。
+huro3h.com のゾーンは `huro3h@gmail.com account` (`wrangler whoami` の 1 つ目) にあり、custom domain で
+DNS と証明書は自動で付く。`wrangler.jsonc` は account_id が入るので git 管理外、`wrangler.example.jsonc` を追跡する。
+
+- UI は claude.ai のアーティファクト版 (ユーザーが作ったもの) に合わせた 1 ページ構成: 上にポップアップと同じ
+  パスワード一覧、歯車で下に編集欄 (#settings) を開け閉めする (遷移しない。開いているかは localStorage に覚える)。
+  一番下に「仕組み」の details。アーティファクトは公開範囲がプランで絞られるおそれがあるので自分のドメインで運用する。
+- ロジックは拡張と共用する。拡張に依存するのは `platform.js` だけ(保存先・`onPresetsChanged`・`VERSION`・`openEditor`)。
+  **新しく chrome API を使うときは `platform.js` に足し、`web/platform.js` にも同じ名前で実装する**。
+  編集欄で保存すると `onPresetsChanged` で一覧を描き直す (拡張では chrome.storage.onChanged)。
+- HTML と CSS は Web 版専用 (`web/index.html` / `web/web.css`)。拡張の popup.css と options.css は `.pw` などが
+  ぶつかるので読まない。`index.html` の id は popup.html / options.html と同じにする。**`build.mjs` は拡張の HTML の
+  id が index.html に全部あるか検査する**ので、拡張のフォームに欄を足したら index.html にも足す。
+  共用 JS が付けるクラスを変えたら web.css も合わせる。
+- バージョン表示は manifest.json の version をビルドで埋め込む。拡張を上げたら `npm run deploy` し直す。
+- `web/_headers` の CSP は `connect-src 'none'`・inline script なし。共用コードに inline script や
+  外部読み込みを入れると Web 版で動かなくなる。
+- 確認は `npm run dev` (wrangler dev) に Playwright で。`localhost` は clipboard 権限を `grantPermissions` で付けられる。
 
 ## E2E で確認するとき
 
