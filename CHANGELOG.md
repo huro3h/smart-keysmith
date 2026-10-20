@@ -5,6 +5,8 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-20
+
 ### Added
 
 - Web 版 (<https://smart-keysmith.huro3h.com/>)。パスワード一覧の下に、歯車でプリセットの編集欄を開く
