@@ -99,6 +99,7 @@
           <li>生成はこのブラウザの中だけで行います。乱数は <code>crypto.getRandomValues</code> を棄却法で偏りなく使っています(<code>generator.js</code> の <code>rand()</code> / <code>generate()</code>)</li>
           <li>生成したパスワードは保存も送信もしません。Local Storage に残すのはプリセットの設定だけです</li>
           <li>ページの設定 (Content-Security-Policy の <code>connect-src 'none'</code>) で通信そのものを禁じています。開発者ツールの Network で通信が起きていないことを確かめられます</li>
+          <li>配信元の Cloudflare がボット対策のスクリプトを差し込みますが、これも同じ設定でブロックされるため実行されず、通信も起きません(開発者ツールのコンソールに出るエラーはそのためです)</li>
           <li>Chrome 拡張版とソースコード: <a href="https://github.com/huro3h/smart-keysmith" target="_blank" rel="noopener noreferrer">GitHub</a></li>
         </ul>
       </details>

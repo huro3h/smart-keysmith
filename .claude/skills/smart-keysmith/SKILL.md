@@ -141,6 +141,12 @@ DNS と証明書は自動で付く。`wrangler.jsonc` は account_id が入る�
 - バージョン表示は manifest.json の version をビルドで埋め込む。拡張を上げたら `npm run deploy` し直す。
 - `web/_headers` の CSP は `connect-src 'none'`・inline script なし。共用コードに inline script や
   外部読み込みを入れると Web 版で動かなくなる。
+- huro3h.com のゾーン設定で、Cloudflare が HTML にスクリプトを差し込む。どちらも CSP でブロックされて実行されない。
+  - Web Analytics (cloudflareinsights の beacon): 設定ルール「smart-keysmith: Web Analytics を止める」
+    (`http.host eq "smart-keysmith.huro3h.com"` → Disable RUM) でこのサブドメインだけ止めた (2026-10-20)。
+  - ボット対策の JS 検出 (`/cdn-cgi/challenge-platform/`): ユーザーの希望で残す。ゾーン全体の設定。
+    CSP で許すとページから通信が起きるので許さない。コンソールに CSP 違反が 2 件出るのはこれで、「仕組み」に説明を書いてある。
+  - wrangler の OAuth トークンではゾーン設定 (bot_management / rum) を読めない。変えるときはダッシュボードで。
 - 確認は `npm run dev` (wrangler dev) に Playwright で。`localhost` は clipboard 権限を `grantPermissions` で付けられる。
 
 ## E2E で確認するとき
