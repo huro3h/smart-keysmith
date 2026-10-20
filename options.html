@@ -39,11 +39,13 @@
             <label class="check"><input type="checkbox" id="sym" /> 記号</label>
           </div>
           <div class="field">
-            <label for="symbols">使う記号</label>
+            <div class="label-row">
+              <label for="symbols">使う記号</label>
+              <button id="symResetBtn" class="small">初期値に戻す</button>
+            </div>
             <input type="text" id="symbols" spellcheck="false" autocomplete="off" />
             <span class="hint">サイトが許可する記号だけを残してください</span>
-            <label for="exclude" class="spaced">除外する文字</label>
-            <input type="text" id="exclude" spellcheck="false" autocomplete="off" placeholder="例: \&quot;'`" />
+            <span class="warn" id="symWarn"></span>
           </div>
           <div class="field wide">
             <span class="label">ルール</span>

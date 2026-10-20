@@ -37,7 +37,7 @@ test("プリセット id は一意", () => {
 test("findPreset: 未知の id は先頭プリセットに戻す", () => {
   assert.equal(findPreset(PRESETS, "nope"), PRESETS[0]);
   assert.equal(findPreset(PRESETS, undefined), PRESETS[0]);
-  assert.equal(findPreset(PRESETS, "pin6").len, 6);
+  assert.equal(findPreset(PRESETS, "bank12").len, 12);
 });
 
 test("既定のプリセット (max32) は一般的な記号をすべて使う", () => {
@@ -56,6 +56,7 @@ test("normalizePreset: Web 版の書き出し (id なし) を読める", () => {
   const p = normalizePreset(web);
   assert.match(p.id, /^[0-9a-f-]{36}$/);
   assert.equal(p.name, "標準 20");
+  assert.ok(!("exclude" in p));
   assert.equal(generate(p).length, 20);
 });
 
@@ -74,10 +75,10 @@ test("初期プリセットは normalizePreset しても変わらない", () => 
   for (const p of PRESETS) assert.deepEqual(normalizePreset(p), p);
 });
 
-test("除外する文字は使わない", () => {
-  const p = { ...findPreset(PRESETS, "max32"), exclude: "^&" };
-  assert.equal(poolSize(p), 26 * 2 + 10 + COMMON_SYM.length - 2);
-  for (let i = 0; i < N; i++) assert.ok(!/[\^&]/.test(generate(p)));
+test("poolSize: 紛らわしい文字を除くと候補から外れる", () => {
+  const p = findPreset(PRESETS, "max32");
+  assert.equal(poolSize(p), 26 * 2 + 10 + COMMON_SYM.length);
+  assert.equal(poolSize({ ...p, ambig: true }), 26 * 2 + 10 + COMMON_SYM.length - 5);
 });
 
 test("presetLabel: 名前が空なら文字種と文字数から作る", () => {
@@ -88,7 +89,6 @@ test("presetLabel: 名前が空なら文字種と文字数から作る", () => {
     "英大小数字24",
     "英大小数字記号16",
     "英大小数字12",
-    "数字6",
   ]);
   const base = normalizePreset({ len: 8 });
   assert.equal(presetLabel({ ...base, upper: true }), "英大8");

@@ -5,19 +5,18 @@ const UP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const LO = "abcdefghijklmnopqrstuvwxyz";
 const DG = "0123456789";
 // 多くのサイトで通る記号。引用符・バックスラッシュ・括弧・<> などは弾くサイトがあるので入れない
-export const COMMON_SYM = "!@#$%^&*-_=+?";
+export const COMMON_SYM = "!@#$%&*-_+=?";
 const AMBIG = "0O1lI";
 export const MIN_LEN = 4;
 export const MAX_LEN = 128;
 
 // name が空のプリセットは presetLabel() が文字種と文字数から名前を作る (「英大小数字記号32」など)
 export const DEFAULT_PRESETS = [
-  { id: "max32", name: "", len: 32, upper: true, lower: true, digit: true, sym: true, symbols: COMMON_SYM, exclude: "", each: true, ambig: false, alphaStart: false },
-  { id: "std20", name: "", len: 20, upper: true, lower: true, digit: true, sym: true, symbols: COMMON_SYM, exclude: "", each: true, ambig: false, alphaStart: false },
-  { id: "nosym24", name: "", len: 24, upper: true, lower: true, digit: true, sym: false, symbols: "", exclude: "", each: true, ambig: false, alphaStart: false },
-  { id: "max16", name: "", len: 16, upper: true, lower: true, digit: true, sym: true, symbols: "!@#$%&*-_", exclude: "", each: true, ambig: false, alphaStart: true },
-  { id: "bank12", name: "", len: 12, upper: true, lower: true, digit: true, sym: false, symbols: "", exclude: "", each: true, ambig: true, alphaStart: true },
-  { id: "pin6", name: "", len: 6, upper: false, lower: false, digit: true, sym: false, symbols: "", exclude: "", each: false, ambig: false, alphaStart: false },
+  { id: "max32", name: "", len: 32, upper: true, lower: true, digit: true, sym: true, symbols: COMMON_SYM, each: true, ambig: false, alphaStart: false },
+  { id: "std20", name: "", len: 20, upper: true, lower: true, digit: true, sym: true, symbols: COMMON_SYM, each: true, ambig: false, alphaStart: false },
+  { id: "nosym24", name: "", len: 24, upper: true, lower: true, digit: true, sym: false, symbols: "", each: true, ambig: false, alphaStart: false },
+  { id: "max16", name: "", len: 16, upper: true, lower: true, digit: true, sym: true, symbols: "!@#$%&*-_", each: true, ambig: false, alphaStart: true },
+  { id: "bank12", name: "", len: 12, upper: true, lower: true, digit: true, sym: false, symbols: "", each: true, ambig: true, alphaStart: true },
 ];
 
 // 未知の id (削除済みなど) は先頭に戻す
@@ -37,7 +36,6 @@ export function normalizePreset(x) {
     digit: !!x?.digit,
     sym: !!x?.sym,
     symbols: String(x?.symbols ?? ""),
-    exclude: String(x?.exclude ?? ""),
     each: !!x?.each,
     ambig: !!x?.ambig,
     alphaStart: !!x?.alphaStart,
@@ -58,8 +56,7 @@ export function presetLabel(p) {
 const uniq = (s) => [...new Set(s)].join("");
 
 function filt(set, o) {
-  const ex = (o.exclude ?? "") + (o.ambig ? AMBIG : "");
-  return uniq([...set].filter((c) => !ex.includes(c) && c !== " ").join(""));
+  return uniq([...set].filter((c) => !(o.ambig && AMBIG.includes(c)) && c !== " ").join(""));
 }
 
 // 0..n-1 を偏りなく返す (剰余の偏りを棄却法で避ける)

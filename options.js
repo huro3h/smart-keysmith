@@ -1,4 +1,4 @@
-import { DEFAULT_PRESETS, findPreset, normalizePreset, generate, poolSize, presetLabel } from "./generator.js";
+import { COMMON_SYM, DEFAULT_PRESETS, findPreset, normalizePreset, generate, poolSize, presetLabel } from "./generator.js";
 import { loadSettings } from "./settings.js";
 
 const $ = (id) => document.getElementById(id);
@@ -161,14 +161,20 @@ function writeForm(p) {
   $("lenRange").value = p.len;
   CHECKS.forEach((k) => ($(k).checked = p[k]));
   $("symbols").value = p.symbols;
-  $("exclude").value = p.exclude;
   $("symbols").disabled = !p.sym;
+  $("symResetBtn").disabled = !p.sym;
 }
 
 function readForm() {
-  const o = { id: editingId, name: $("name").value, len: $("lenNum").value, symbols: $("symbols").value, exclude: $("exclude").value };
+  const o = { id: editingId, name: $("name").value, len: $("lenNum").value, symbols: $("symbols").value };
   CHECKS.forEach((k) => (o[k] = $(k).checked));
   return normalizePreset(o);
+}
+
+// 記号にチェックがあっても使う記号が空だと、名前に「記号」と付くのに記号が入らない。
+// 生成はできるので保存は止めず、警告だけ出す (複製したプリセットで気づかなかったことがある)
+function renderSymWarn(p) {
+  $("symWarn").textContent = p.sym && !p.symbols.trim() ? "使う記号が空なので、記号は入りません" : "";
 }
 
 function renderPreview(p) {
@@ -199,6 +205,7 @@ function selectForEdit(id) {
   editingId = id;
   writeForm(editing());
   renderList();
+  renderSymWarn(editing());
   renderPreview(editing());
 }
 
@@ -209,10 +216,12 @@ async function onFormInput(event) {
   const followName = event?.target !== $("name") && !editing().name;
   if (followName) $("name").value = "";
   $("symbols").disabled = !$("sym").checked;
+  $("symResetBtn").disabled = !$("sym").checked;
   const p = readForm();
   // 空欄のときに出る自動の名前は、文字種や文字数を変えるたびに追従させる
   $("name").placeholder = presetLabel({ ...p, name: "" });
   if (followName) $("name").value = presetLabel(p);
+  renderSymWarn(p);
   if (!renderPreview(p)) return;
   presets[presets.findIndex((x) => x.id === editingId)] = p;
   renderList();
@@ -236,8 +245,24 @@ $("name").onchange = () => {
 };
 // 範囲外の数字を打ったまま離れたら、保存済みの値に戻す
 $("lenNum").onchange = () => ($("lenNum").value = editing().len);
-["name", "symbols", "exclude"].forEach((k) => ($(k).oninput = onFormInput));
+["name", "symbols"].forEach((k) => ($(k).oninput = onFormInput));
 CHECKS.forEach((k) => ($(k).onchange = onFormInput));
+// 複製したあとで元の記号が分からなくなったときに、初期プリセットの記号へ戻す。
+// 手で絞った記号を上書きするので、通知の「元に戻す」で差し戻せるようにする
+$("symResetBtn").title = `使う記号を ${COMMON_SYM} にする`;
+$("symResetBtn").onclick = () => {
+  const { id, symbols } = editing();
+  if (symbols === COMMON_SYM) return;
+  $("symbols").value = COMMON_SYM;
+  onFormInput({ target: $("symbols") });
+  toast("使う記号を初期値に戻しました", async () => {
+    const p = presets.find((x) => x.id === id);
+    if (!p) return;
+    p.symbols = symbols;
+    await save();
+    if (editingId === id) selectForEdit(id);
+  });
+};
 $("regenBtn").onclick = () => renderPreview(readForm());
 
 // 行のボタンからは確認なしで実行する。行に紐づく操作は添字ではなく id で引く

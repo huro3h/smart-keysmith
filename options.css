@@ -72,13 +72,10 @@ section {
 }
 
 .label,
-.field > label {
+.field > label,
+.label-row > label {
   font-size: 12px;
   color: var(--muted);
-}
-
-.spaced {
-  margin-top: 10px;
 }
 
 button {
@@ -98,6 +95,12 @@ button:hover {
 
 button.danger {
   color: var(--danger);
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 button.small {
@@ -340,6 +343,16 @@ input:disabled {
 }
 
 .err:empty {
+  display: none;
+}
+
+.warn {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--warn);
+}
+
+.warn:empty {
   display: none;
 }
 
