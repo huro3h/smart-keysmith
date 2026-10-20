@@ -119,6 +119,13 @@ async function persistOrder() {
   await save();
 }
 
+// ドラッグしている行を、指 / カーソルの高さにある位置へ動かす
+function moveRow(listEl, row, y) {
+  const after = rowAfter(listEl, y);
+  if (after == null) listEl.appendChild(row);
+  else if (after !== row) listEl.insertBefore(row, after);
+}
+
 // リスナーは行ではなくリスト側に置く — renderList() が行を作り直しても生き残るため
 function enableDragReorder(listEl) {
   let dragging = null;
@@ -136,9 +143,7 @@ function enableDragReorder(listEl) {
     if (!dragging) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    const after = rowAfter(listEl, event.clientY);
-    if (after == null) listEl.appendChild(dragging);
-    else if (after !== dragging) listEl.insertBefore(dragging, after);
+    moveRow(listEl, dragging, event.clientY);
   });
 
   listEl.addEventListener("drop", (event) => {
@@ -150,6 +155,33 @@ function enableDragReorder(listEl) {
     dragging.classList.remove("dragging");
     dragging = null;
     void persistOrder();
+  });
+
+  // タッチ (Web 版をスマホで開いたとき)。HTML5 のドラッグはタッチでは始まらない (iOS は長押しが要る) ので、
+  // ハンドルに触れた指を Pointer Events で追う。ハンドルに touch-action: none が要る (無いと指の動きが
+  // ページのスクロールに取られる)。行を DOM の中で動かすとポインターキャプチャが外れることがあるので、
+  // 動きと離したことは window で受ける
+  listEl.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse") return;
+    const handle = event.target.closest(".drag-handle");
+    if (!handle) return;
+    event.preventDefault();
+    const row = handle.closest("li");
+    row.classList.add("dragging");
+    const move = (e) => {
+      if (e.pointerId === event.pointerId) moveRow(listEl, row, e.clientY);
+    };
+    const end = (e) => {
+      if (e.pointerId !== event.pointerId) return;
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", end);
+      removeEventListener("pointercancel", end);
+      row.classList.remove("dragging");
+      void persistOrder();
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", end);
+    addEventListener("pointercancel", end);
   });
 }
 enableDragReorder($("presets"));

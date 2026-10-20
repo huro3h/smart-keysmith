@@ -47,6 +47,16 @@ body {
   font: 14px/1.6 -apple-system, system-ui, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif;
 }
 
+/* iPhone の Chrome (WKWebView) は、中身が画面より短いとバウンスせず、引っ張ってリロードが効かない。
+   編集欄を閉じていると一覧は画面より短いので、タッチ端末ではページを画面より 1px 長くしておく
+   (100lvh はツールバーが隠れたときの高さ。古いブラウザ向けに 100vh を先に書く) */
+@media (pointer: coarse) {
+  body {
+    min-height: calc(100vh + 1px);
+    min-height: calc(100lvh + 1px);
+  }
+}
+
 main {
   max-width: 680px;
   margin: 0 auto;
@@ -338,6 +348,21 @@ input:disabled {
 
 .drag-handle:active {
   cursor: grabbing;
+}
+
+/* スマホ: ハンドルに触れた指でそのまま並べ替える (options.js の pointerdown)。
+   touch-action: none が無いと指の動きがスクロールに取られる。指で掴めるよう当たり判定を広げる */
+.drag-handle {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+@media (pointer: coarse) {
+  .drag-handle {
+    padding: 12px 10px;
+    margin: -6px 0 -6px -6px;
+    font-size: 18px;
+  }
 }
 
 .row-btn {

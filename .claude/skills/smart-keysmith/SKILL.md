@@ -127,6 +127,14 @@ DNS と証明書は自動で付く。`wrangler.jsonc` は account_id が入る�
   ぶつかるので読まない。`index.html` の id は popup.html / options.html と同じにする。**`build.mjs` は拡張の HTML の
   id が index.html に全部あるか検査する**ので、拡張のフォームに欄を足したら index.html にも足す。
   共用 JS が付けるクラスを変えたら web.css も合わせる。
+- スマホ: HTML5 のドラッグはタッチでは始まらない (iOS は長押しが要る) ので、`enableDragReorder` に
+  Pointer Events (`pointerType !== "mouse"`) で指を追う経路を足した。マウスは HTML5 のまま。ハンドルに
+  `touch-action: none` が要る (web.css。無いと指の動きがスクロールに取られる)。行を DOM で動かすと
+  ポインターキャプチャが外れることがあるので move / up は window で受ける。`(pointer: coarse)` で当たり判定を広げた。
+  確認は `hasTouch` / `isMobile` のコンテキストで CDP の `Input.dispatchTouchEvent` を送る。iPhone の Chrome と Safari の
+  実機で確認済み (2026-10-20)。
+- iPhone の Chrome (WKWebView) は中身が画面より短いとバウンスせず、引っ張ってリロードが効かない。編集欄を閉じた
+  一覧は画面より短いので、`(pointer: coarse)` で body を `calc(100lvh + 1px)` にしている (実機で直ったことを確認)。
 - バージョン表示は manifest.json の version をビルドで埋め込む。拡張を上げたら `npm run deploy` し直す。
 - `web/_headers` の CSP は `connect-src 'none'`・inline script なし。共用コードに inline script や
   外部読み込みを入れると Web 版で動かなくなる。
