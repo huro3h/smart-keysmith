@@ -21,7 +21,7 @@ if (missing.length) throw new Error(`index.html に無い id があります: ${
 rmSync(DIST, { recursive: true, force: true });
 mkdirSync(DIST);
 for (const f of ["generator.js", "settings.js", "popup.js", "options.js"]) cpSync(join(ROOT, f), join(DIST, f));
-for (const f of ["index.html", "web.css", "_headers"]) cpSync(join(WEB, f), join(DIST, f));
+for (const f of ["index.html", "web.css", "_headers", "apple-touch-icon.png"]) cpSync(join(WEB, f), join(DIST, f));
 cpSync(join(ROOT, "icons/icon.svg"), join(DIST, "favicon.svg"));
 
 const platform = read(WEB, "platform.js");

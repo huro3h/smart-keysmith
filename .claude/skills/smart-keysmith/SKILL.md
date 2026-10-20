@@ -135,6 +135,9 @@ DNS と証明書は自動で付く。`wrangler.jsonc` は account_id が入る�
   実機で確認済み (2026-10-20)。
 - iPhone の Chrome (WKWebView) は中身が画面より短いとバウンスせず、引っ張ってリロードが効かない。編集欄を閉じた
   一覧は画面より短いので、`(pointer: coarse)` で body を `calc(100lvh + 1px)` にしている (実機で直ったことを確認)。
+- ファビコンは `icons/icon.svg` をビルドでそのままコピーする (拡張のアイコンを直せば Web 版も変わる)。
+  iPhone のホーム画面用の `web/apple-touch-icon.png` (180px) は、iOS が透明部分を黒く塗るので白地に鍵を 7 割で置いた
+  `web/apple-touch-icon.svg` から `rsvg-convert` で書き出して追跡している。鍵の形や色を変えたらこちらも直して書き出し直す。
 - バージョン表示は manifest.json の version をビルドで埋め込む。拡張を上げたら `npm run deploy` し直す。
 - `web/_headers` の CSP は `connect-src 'none'`・inline script なし。共用コードに inline script や
   外部読み込みを入れると Web 版で動かなくなる。
