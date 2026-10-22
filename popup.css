@@ -60,7 +60,7 @@ body {
 
 .tools {
   display: flex;
-  gap: 2px;
+  gap: 8px;
 }
 
 button {
@@ -111,8 +111,7 @@ button:disabled {
   gap: 8px;
 }
 
-/* 33 文字以上は popup.js が省略して出す。表示を選択してコピーすると省略された文字列に
-   なってしまうので、全選択 (user-select: all) にはしない。コピーはボタンから */
+/* 1 行に収まらない分は右端で「…」にする (文字は全文入っている)。コピーはボタンから */
 .pw {
   flex: 1;
   min-width: 0;
@@ -123,11 +122,14 @@ button:disabled {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   line-height: 1.5;
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pw.err {
   font-family: inherit;
+  white-space: normal;
   color: var(--danger);
 }
 
@@ -152,6 +154,17 @@ button:disabled {
 
 .icon-btn svg {
   display: block;
+}
+
+/* 右上の再生成・設定は、行ごとのコピーより少し大きく */
+.tools .icon-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.tools .icon-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .copy {

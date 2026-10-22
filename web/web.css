@@ -87,7 +87,7 @@ main {
 
 .tools {
   display: flex;
-  gap: 2px;
+  gap: 8px;
 }
 
 button {
@@ -153,6 +153,17 @@ textarea:focus-visible {
   display: block;
 }
 
+/* 右上の再生成・設定は、行ごとのコピーより少し大きく */
+.tools .icon-btn {
+  width: 36px;
+  height: 36px;
+}
+
+.tools .icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* パスワード一覧 (ポップアップ) */
 .list {
   list-style: none;
@@ -177,7 +188,7 @@ textarea:focus-visible {
   gap: 8px;
 }
 
-/* 33 文字以上は省略して出すので、全選択 (user-select: all) にはしない。コピーはボタンから */
+/* 1 行に収まらない分は右端で「…」にする (文字は全文入っている)。コピーはボタンから */
 .list .pw {
   flex: 1;
   min-width: 0;
@@ -188,11 +199,14 @@ textarea:focus-visible {
   font-family: var(--mono);
   font-size: 14px;
   line-height: 1.5;
-  word-break: break-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .list .pw.err {
   font-family: inherit;
+  white-space: normal;
   font-size: 13px;
   color: var(--danger);
 }

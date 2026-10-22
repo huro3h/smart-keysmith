@@ -3,8 +3,6 @@ import { loadSettings } from "./settings.js";
 import { VERSION, onPresetsChanged, openEditor } from "./platform.js";
 
 const $ = (id) => document.getElementById(id);
-// これより長いパスワードは表示だけ省略する (コピーは全文)
-const SHOW_MAX = 32;
 
 // Lucide 系の線画。色は currentColor でボタンの文字色に従う
 const svg = (inner) =>
@@ -40,7 +38,7 @@ function render(presets) {
       let value = "";
       try {
         value = generate(p);
-        pw.textContent = value.length > SHOW_MAX ? `${value.slice(0, SHOW_MAX)}…` : value;
+        pw.textContent = value;
       } catch (e) {
         // オプション画面は生成できない条件を保存しないので、通常は来ない
         pw.textContent = e.message;
