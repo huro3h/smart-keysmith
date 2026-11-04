@@ -135,6 +135,9 @@ DNS と証明書は自動で付く。`wrangler.jsonc` は account_id が入る�
 - UI は claude.ai のアーティファクト版 (ユーザーが作ったもの) に合わせた 1 ページ構成: 上にポップアップと同じ
   パスワード一覧、歯車で下に編集欄 (#settings) を開け閉めする (遷移しない。開いているかは localStorage に覚える)。
   一番下に「仕組み」の details。アーティファクトは公開範囲がプランで絞られるおそれがあるので自分のドメインで運用する。
+- Web 版だけ、一覧の各行のコピーボタンの左に再生成ボタン(rotate-cw)を出し、その行だけ作り直す。一覧が長いと右上の
+  「すべて再生成」が遠いというユーザーの要望 (2026-11-04)。拡張のポップアップには出さない。切り替えは `platform.js` の
+  `ROW_REGEN`(拡張 false / Web true)。
 - ロジックは拡張と共用する。拡張に依存するのは `platform.js` だけ(保存先・`onPresetsChanged`・`VERSION`・`openEditor`)。
   **新しく chrome API を使うときは `platform.js` に足し、`web/platform.js` にも同じ名前で実装する**。
   編集欄で保存すると `onPresetsChanged` で一覧を描き直す (拡張では chrome.storage.onChanged)。

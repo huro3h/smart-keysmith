@@ -1,6 +1,6 @@
 import { generate, presetLabel } from "./generator.js";
 import { loadSettings } from "./settings.js";
-import { VERSION, onPresetsChanged, openEditor } from "./platform.js";
+import { VERSION, ROW_REGEN, onPresetsChanged, openEditor } from "./platform.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -36,15 +36,18 @@ function render(presets) {
       copy.setAttribute("aria-label", `「${presetLabel(p)}」のパスワードをコピー`);
 
       let value = "";
-      try {
-        value = generate(p);
-        pw.textContent = value;
-      } catch (e) {
-        // オプション画面は生成できない条件を保存しないので、通常は来ない
-        pw.textContent = e.message;
-        pw.classList.add("err");
-        copy.disabled = true;
-      }
+      const fill = () => {
+        try {
+          value = generate(p);
+          pw.textContent = value;
+        } catch (e) {
+          // オプション画面は生成できない条件を保存しないので、通常は来ない
+          pw.textContent = e.message;
+          pw.classList.add("err");
+          copy.disabled = true;
+        }
+      };
+      fill();
 
       // ポップアップはフォーカスを持っているので navigator.clipboard がそのまま使える
       copy.onclick = async () => {
@@ -66,7 +69,18 @@ function render(presets) {
         }, 1500);
       };
 
-      row.append(pw, copy);
+      row.append(pw);
+      if (ROW_REGEN) {
+        const regen = document.createElement("button");
+        regen.className = "icon-btn regen";
+        regen.innerHTML = REGEN_ICON;
+        regen.title = "再生成";
+        regen.setAttribute("aria-label", `「${presetLabel(p)}」のパスワードを再生成`);
+        regen.disabled = copy.disabled;
+        regen.onclick = fill;
+        row.append(regen);
+      }
+      row.append(copy);
       li.append(label, row);
       return li;
     }),

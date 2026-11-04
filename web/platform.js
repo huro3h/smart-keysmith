@@ -32,6 +32,9 @@ export function onPresetsChanged(callback) {
 // ビルドで manifest.json の version に置き換える
 export const VERSION = "__VERSION__";
 
+// 行ごとの再生成ボタン。一覧が長いと右上の「すべて再生成」が遠くなるので、Web 版だけ出す
+export const ROW_REGEN = true;
+
 // 編集欄 (#settings) は一覧の下にあり、歯車で開け閉めする (ページは遷移しない)
 const scrollBehavior = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
 

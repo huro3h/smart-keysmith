@@ -19,6 +19,9 @@ export function onPresetsChanged(callback) {
 
 export const VERSION = chrome.runtime.getManifest().version;
 
+// 行ごとの再生成ボタン。ポップアップは小さく右上のボタンに手が届くので出さない
+export const ROW_REGEN = false;
+
 export function openEditor() {
   chrome.runtime.openOptionsPage();
 }
