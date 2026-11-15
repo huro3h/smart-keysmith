@@ -1,4 +1,6 @@
 // 拡張と Web 版で違うところだけをここに置く。Web 版はビルドで web/platform.js に差し替わる
+import * as exportFile from "./export-file.js";
+
 // chrome.storage.local
 //   presets: プリセットの配列。ポップアップにこの順で並ぶ
 
@@ -25,3 +27,6 @@ export const ROW_REGEN = false;
 export function openEditor() {
   chrome.runtime.openOptionsPage();
 }
+
+// 書き出しを、選んだファイルにも上書きする(export-file.js)。保存ダイアログが使えないブラウザ(Brave など)では null
+export const EXPORT_FILE = exportFile.canPickFile ? exportFile : null;

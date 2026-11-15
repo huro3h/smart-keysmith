@@ -1,6 +1,6 @@
 import { COMMON_SYM, DEFAULT_PRESETS, findPreset, normalizePreset, generate, poolSize, presetLabel } from "./generator.js";
 import { loadSettings } from "./settings.js";
-import { writePresets } from "./platform.js";
+import { EXPORT_FILE, writePresets } from "./platform.js";
 
 const $ = (id) => document.getElementById(id);
 const CHECKS = ["upper", "lower", "digit", "sym", "each", "ambig", "alphaStart"];
@@ -414,11 +414,48 @@ async function remove(id) {
   });
 }
 
-$("exportBtn").onclick = () => {
-  $("io").value = JSON.stringify(presets, null, 1);
+// オブジェクトのキーを名前順に並べ直す(配列の並びはそのまま)。storage から読み直したプリセットはキーが名前順、
+// この画面で編集したばかりのプリセットは normalizePreset の順になるので、そろえないと同じ中身でも書き出すたびに差分が出る
+function sortKeys(value) {
+  if (Array.isArray(value)) return value.map(sortKeys);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.keys(value).sort().map((k) => [k, sortKeys(value[k])]));
+}
+
+// テキスト欄に出し、拡張では選んだファイルにも上書きする(書き出し先は初回に保存ダイアログで選ぶ。見えるのはファイル名だけ)
+function showExportTarget(handle) {
+  $("exportTarget").textContent = handle ? handle.name : "未設定(初回に選びます)";
+}
+
+async function exportPresets(choose) {
+  const text = `${JSON.stringify(sortKeys(presets), null, 2)}\n`;
+  $("io").value = text;
   $("io").select();
-  toast("書き出しました。コピーして保管してください");
-};
+  if (!EXPORT_FILE) {
+    toast("書き出しました。コピーして保管してください");
+    return;
+  }
+  let result;
+  try {
+    result = await EXPORT_FILE.exportToFile(text, { choose });
+  } catch {
+    toast("ファイルに書き出せませんでした。「変更」から書き出し先を選び直してください");
+    return;
+  }
+  if (!result) {
+    toast("テキスト欄にだけ書き出しました(ファイルは選ばれませんでした)");
+    return;
+  }
+  showExportTarget(await EXPORT_FILE.loadExportHandle());
+  toast(`${result.name} に書き出しました`);
+}
+
+$("exportBtn").onclick = () => exportPresets(false);
+$("changeExportTarget").onclick = () => exportPresets(true);
+if (EXPORT_FILE) {
+  $("exportTargetRow").hidden = false;
+  EXPORT_FILE.loadExportHandle().then(showExportTarget);
+}
 
 $("importBtn").onclick = () => {
   let list;
