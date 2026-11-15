@@ -28,5 +28,5 @@ export function openEditor() {
   chrome.runtime.openOptionsPage();
 }
 
-// 書き出しを、選んだファイルにも上書きする(export-file.js)。保存ダイアログが使えないブラウザ(Brave など)では null
-export const EXPORT_FILE = exportFile.canPickFile ? exportFile : null;
+// 書き出しを、選んだフォルダのファイルにも上書きする(export-file.js)。フォルダを選べないブラウザ(Brave など)では null
+export const EXPORT_FILE = exportFile.canPickFolder ? exportFile : null;

@@ -34,7 +34,7 @@ Web 版の書き出し(`id` なしの配列)をそのまま読めるのは移行
 | `popup.html` / `popup.js` / `popup.css` | 全プリセットのパスワード一覧とコピーボタン |
 | `options.html` / `options.js` / `options.css` | プリセットの編集画面(`options_ui`, タブで開く) |
 | `platform.js` | 拡張に依存する処理 (chrome.storage / manifest の version / オプション画面を開く / ファイルへの書き出し)。Web 版は `web/platform.js` に差し替わる |
-| `export-file.js` | 書き出しの書き出し先(保存ダイアログで選んだファイルのハンドル)の記憶と上書き。拡張だけ(Web 版のビルドには入れない) |
+| `export-file.js` | 書き出し先(選んだフォルダのハンドルとファイル名)の記憶と上書き。拡張だけ(Web 版のビルドには入れない) |
 | `web/` | Web 版。下の「Web 版」 |
 | `test/generator.test.mjs` | `node --test test/` |
 
@@ -114,20 +114,29 @@ Web 版の書き出し(`id` なしの配列)をそのまま読めるのは移行
   toast の「元に戻す」で差し戻す。差し戻しは押したときのプリセット id で引く(別のプリセットに移っていても
   そのプリセットだけ戻す)。記号にチェックがないときは記号欄と一緒に無効。
 - 読み込み・初期化の確認は `confirm()` ではなく画面内の確認欄で出す。
-- **書き出しはテキスト欄に加えて固定のファイルにも上書きする(1.3.0、2026-11-15 ユーザーの依頼)。** 書き出したファイルを
-  git(個人設定用のプライベートリポジトリ)で管理して差分を見るため、~/projects の設定を書き出す拡張機能をそろえて同じ形にした。
-  `export-file.js`:初回は `showSaveFilePicker`(id `export-file`、初期名 `smart-keysmith-settings.json`)で選び、ハンドルを
-  IndexedDB `export-file`/`handles`/`exportFile` に入れる。次からは `queryPermission` → 許可が切れていれば `requestPermission` →
-  断られたら選び直し。「変更」は選び直してそのまま書き出す。見えるのはファイル名だけ。
-  - **拡張だけ。** `platform.js` の `EXPORT_FILE`(`showSaveFilePicker` が無ければ null)、`web/platform.js` は常に null。
-    書き出し先の行(`#exportTargetRow` ほか)は `build.mjs` の id 検査のため `web/index.html` にも `hidden` で置いてある。
-    null のときは今までどおりテキスト欄に出して「コピーして保管してください」。Brave にも `showSaveFilePicker` は無い
+- **書き出しはテキスト欄に加えて「選んだフォルダ/欄で決めたファイル名」にも上書きする。** 書き出したファイルを
+  git(個人設定用のプライベートリポジトリ)で管理して差分を見るため、~/projects の設定を書き出す拡張機能をそろえて同じ形にした
+  (2026-11-15 ユーザーの依頼)。1.3.0 は `showSaveFilePicker` でファイルを選んでいたが、ファイルのハンドルからは**ファイル名しか
+  分からず**画面に場所を出せなかった。ファイル名を拡張機能側で持ってほしいという要望もあり、1.4.0 で bookmark-set-opener 2.7.0 と
+  同じ形に変えた。`export-file.js`:初回は `showDirectoryPicker`(id `export-file`、`mode: "readwrite"`)でフォルダを選び、
+  IndexedDB `export-file`/`handles` に `exportDir`(フォルダのハンドル)と `fileName` を入れる。`fileName` が無ければ 1.3.0 の
+  `exportFile`(ファイルのハンドル)の名前 → `smart-keysmith-settings.json`。書き出すたびに `queryPermission` → 許可が切れていれば
+  `requestPermission` → 断られたら選び直し、`dir.getFileHandle(name, { create: true })`。フォルダのハンドルもフォルダ名しか持たない。
+  ファイル名の欄(`#exportFileName`)は `onchange`(離れたとき・Enter)で保存し、`/ \ :` を含む・先頭が `.`・空は toast を出して元に戻す。
+  `.json` が無ければ足す。書き出しを押したときにも欄の値を先に保存する(`change` の保存と前後しうるため)。
+  欄はプリセットの即保存(`onFormInput`、要素ごとに付けている)には関係しない。
+  - **拡張だけ。** `platform.js` の `EXPORT_FILE`(`showDirectoryPicker` が無ければ null)、`web/platform.js` は常に null。
+    書き出し先の行(`#exportTargetRow` ほか)は `build.mjs` の id 検査のため `web/index.html` にも `hidden` で置いてある
+    (`.export-target` に `display: flex` を付けたので、options.css に `[hidden]` の打ち消しがある)。
+    null のときは今までどおりテキスト欄に出して「コピーして保管してください」。Brave には `showDirectoryPicker` も `showSaveFilePicker` も無い
   - 書き出す JSON は `sortKeys()` でキーを名前順にし、字下げ2・末尾改行(テキスト欄も同じ文字列)。**`chrome.storage` から
     読み直したプリセットはキーが名前順、画面で編集・読み込みした直後は `normalizePreset` の順**なので、そろえないと
     同じプリセットでも書き出すたびに差分が出る(yt-quick-filter で測って気づいた)
-  - 確認(Brave Nightly、`showSaveFilePicker` を OPFS のハンドルを返すものに差し替え): 行を出さない/出す・初期名・
-    ファイルとテキスト欄が同じ・読み込み直後と開き直した後で同じ中身・2回目はダイアログなし・「変更」・ポップアップも動く。
-    **未確認:** 本物の保存ダイアログと、再起動後の許可の確認(Chrome で手で確かめる)
+  - 確認(Brave Nightly、`showDirectoryPicker` を OPFS の中のフォルダを返すものに差し替え): 行を出さない/出す・1.3.0 の
+    ファイル名の引き継ぎ・「private-settings/〜.json に書き出しました」・フォルダ名・ファイルとテキスト欄が同じ・2回目は選ばない・
+    使えない名前は戻す・フォルダの変更・欄でプリセットが変わらない・ページのエラーなし(1.3.0 では読み込み直後と開き直した後で同じ中身、
+    ポップアップも確認)。Web 版は本番で行が出ずテキスト欄だけになることを確認。
+    **未確認:** 本物のフォルダ選択ダイアログと、再起動後の許可の確認(Chrome で手で確かめる)
 
 ## 生成アルゴリズム(Web 版と同一)
 

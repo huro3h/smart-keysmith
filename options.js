@@ -422,12 +422,15 @@ function sortKeys(value) {
   return Object.fromEntries(Object.keys(value).sort().map((k) => [k, sortKeys(value[k])]));
 }
 
-// テキスト欄に出し、拡張では選んだファイルにも上書きする(書き出し先は初回に保存ダイアログで選ぶ。見えるのはファイル名だけ)
-function showExportTarget(handle) {
-  $("exportTarget").textContent = handle ? handle.name : "未設定(初回に選びます)";
+// テキスト欄に出し、拡張では選んだフォルダの、欄で決めたファイル名のファイルにも上書きする(export-file.js)。
+// フォルダは名前しか分からない(フルパスは拡張機能から見えない)
+async function showExportTarget() {
+  $("exportFileName").value = await EXPORT_FILE.loadFileName();
+  const dir = await EXPORT_FILE.loadExportDir();
+  $("exportDir").textContent = dir ? dir.name : "(フォルダは初回に選びます)";
 }
 
-async function exportPresets(choose) {
+async function exportPresets(chooseDir) {
   const text = `${JSON.stringify(sortKeys(presets), null, 2)}\n`;
   $("io").value = text;
   $("io").select();
@@ -435,26 +438,45 @@ async function exportPresets(choose) {
     toast("書き出しました。コピーして保管してください");
     return;
   }
+  // 欄を書き換えたままボタンを押したときも、その名前で書き出す
+  try {
+    $("exportFileName").value = await EXPORT_FILE.saveFileName($("exportFileName").value);
+  } catch (e) {
+    toast(e.message);
+    return;
+  }
   let result;
   try {
-    result = await EXPORT_FILE.exportToFile(text, { choose });
+    result = await EXPORT_FILE.exportToFile(text, { chooseDir });
   } catch {
-    toast("ファイルに書き出せませんでした。「変更」から書き出し先を選び直してください");
+    toast("ファイルに書き出せませんでした。「フォルダを変更」から書き出し先を選び直してください");
     return;
   }
   if (!result) {
-    toast("テキスト欄にだけ書き出しました(ファイルは選ばれませんでした)");
+    toast("テキスト欄にだけ書き出しました(フォルダは選ばれませんでした)");
     return;
   }
-  showExportTarget(await EXPORT_FILE.loadExportHandle());
-  toast(`${result.name} に書き出しました`);
+  await showExportTarget();
+  toast(`${result.path} に書き出しました`);
 }
 
 $("exportBtn").onclick = () => exportPresets(false);
 $("changeExportTarget").onclick = () => exportPresets(true);
+// ファイル名は欄から離れたとき・Enter で覚える。使えない名前なら覚えている名前に戻す
+$("exportFileName").onchange = async () => {
+  try {
+    $("exportFileName").value = await EXPORT_FILE.saveFileName($("exportFileName").value);
+  } catch (e) {
+    toast(e.message);
+    $("exportFileName").value = await EXPORT_FILE.loadFileName();
+  }
+};
+$("exportFileName").onkeydown = (e) => {
+  if (e.key === "Enter" && !e.isComposing) $("exportFileName").blur();
+};
 if (EXPORT_FILE) {
   $("exportTargetRow").hidden = false;
-  EXPORT_FILE.loadExportHandle().then(showExportTarget);
+  showExportTarget();
 }
 
 $("importBtn").onclick = () => {
